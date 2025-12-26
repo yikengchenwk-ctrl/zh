@@ -1,1 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no, email=no">
+    <meta name="description" content="陈奕铿 (Yikeng Chen) - 教育工作者 & 本地化专家个人作品集">
+    <title>陈奕铿 Yikeng Chen | 教育工作者 & 本地化专家</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@200;300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        // 优先使用中文黑体
+                        sans: ['Inter', 'Noto Sans SC', 'system-ui', '-apple-system', 'sans-serif'],
+                        // 优先使用中文宋体，营造典雅感
+                        serif: ['Noto Serif SC', 'Georgia', 'serif'],
+                        // 标题字体保留 Cinzel 的英文字形，中文回退到宋体
+                        display: ['Cinzel', 'Noto Serif SC', 'serif'],
+                    },
+                    colors: {
+                        'void-black': '#050505',
+                        'starlight': '#f4f4f5',
+                        'mist-gray': '#a1a1aa',
+                        'subtle-gray': '#525252',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 1s ease-out forwards',
+                        'slide-up': 'slideUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        
+        body { 
+            background-color: #050505; /* Black fallback */
+            color: #f4f4f5; 
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
 
+        /* Canvas Container for Three.js Background */
+        #webgl-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -10;
+            background: linear-gradient(135deg, #050505, #1a0b2e, #0f172a); 
+        }
+
+        /* Overlay to ensure text readability against the dynamic background */
+        .readability-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(5,5,5,0.4) 0%, rgba(5,5,5,0.85) 100%);
+            z-index: -5;
+            pointer-events: none;
+        }
+
+        .glass-nav {
+            background: rgba(5, 5, 5, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Styles preserved from previous iterations */
+        .hr-highlight {
+            position: relative;
+            cursor: pointer;
+            color: #e5e5e5;
+            border-bottom: 1px dashed rgba(255,255,255,0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-block;
+        }
+        
+        .hr-highlight:hover {
+            color: #000;
+            background: #fff;
+            border-bottom: 1px solid #fff;
+            transform: scale(1.05);
+            padding: 0 6px;
+            margin: 0 -2px;
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.8);
+            font-weight: 600;
+        }
+
+        /* Skill Spectrum Animation */
+        .skill-item-container {
+            position: relative;
+            padding: 12px 0;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            transition: all 0.3s ease;
+        }
+
+        .skill-item-container:hover {
+            border-bottom: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.02);
+            padding-left: 10px; 
+        }
+
+        .skill-level-text {
+            opacity: 0; 
+            transform: translateX(-10px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.7rem;
+            color: #fff;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 80px; 
+            text-align: right;
+        }
+
+        .skill-item-container:hover .skill-level-text {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .skill-spectrum-bar {
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            height: 2px;
+            width: 0%; 
+            background: linear-gradient(90deg, #fff, #a1a1aa, transparent);
+            box-shadow: 0 0 10px rgba(255,255,255,0.8);
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 10;
+        }
+
+        .skill-item-container:hover .skill-spectrum-bar {
+            width: var(--skill-width, 100%); 
+        }
+
+        /* Experience Card */
+        .experience-card {
+            transition: all 0.4s ease;
+            border-left: 2px solid transparent;
+            padding-left: 1rem;
+            margin-left: -1rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .experience-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 2px solid #fff;
+            transform: translateX(5px);
+        }
+
+        .timeline-dot {
+            transition: all 0.4s ease;
+            background-color: #333; 
+            box-shadow: none;
+            border: 2px solid #555;
+        }
+
+        .experience-card:hover .timeline-dot {
+            background-color: #fff;
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+            transform: scale(1.2);
+        }
+
+        /* Social Icon */
+        .social-icon-link {
+            transition: all 0.3s ease;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: #a1a1aa;
+            margin: 0 8px;
+        }
+
+        .social-icon-link:hover {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(255,255,255,0.6);
+        }
+        
+        .social-label {
+            position: absolute;
+            bottom: -24px;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #a1a1aa;
+        }
+
+        .social-icon-link:hover .social-label {
+            opacity: 1;
+        }
+        
+        /* Clean Brand Logo Style */
+        .brand-logo {
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            position: relative;
+            padding-bottom: 2px;
+            color: #fff;
+        }
+        
+        .brand-logo::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 30%;
+            height: 1px;
+            background-color: #fff;
+            transition: width 0.3s ease;
+        }
+        
+        .brand-logo:hover::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-white selection:text-black">
+
+    <div id="webgl-container"></div>
+    <div class="readability-overlay"></div>
+
+    <nav class="fixed w-full z-40 transition-all duration-300 px-6 py-6" id="navbar">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="#" class="brand-logo text-xl hover:text-gray-300 transition-colors">
+                RESUME
+            </a>
+            
+            <div class="hidden md:flex space-x-12">
+                <a href="#about" class="text-xs uppercase tracking-[0.15em] text-gray-400 hover:text-white transition-colors">关于我</a>
+                <a href="#skills" class="text-xs uppercase tracking-[0.15em] text-gray-400 hover:text-white transition-colors">专业技能</a>
+                <a href="#experience" class="text-xs uppercase tracking-[0.15em] text-gray-400 hover:text-white transition-colors">工作经历</a>
+                <a href="#projects" class="text-xs uppercase tracking-[0.15em] text-gray-400 hover:text-white transition-colors">项目展示</a>
+                <a href="#contact" class="text-xs uppercase tracking-[0.15em] text-gray-400 hover:text-white transition-colors">联系方式</a>
+            </div>
+
+            <button class="md:hidden text-white" onclick="toggleMobileMenu()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <div id="mobile-menu" class="fixed inset-0 bg-void-black/95 z-50 hidden flex-col justify-center items-center space-y-8 opacity-0 transition-opacity duration-300 backdrop-blur-md">
+        <button class="absolute top-6 right-6 p-2 text-white" onclick="toggleMobileMenu()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+        <a href="#about" onclick="toggleMobileMenu()" class="text-xl font-light uppercase tracking-widest font-display text-white">关于我</a>
+        <a href="#skills" onclick="toggleMobileMenu()" class="text-xl font-light uppercase tracking-widest font-display text-white">专业技能</a>
+        <a href="#experience" onclick="toggleMobileMenu()" class="text-xl font-light uppercase tracking-widest font-display text-white">工作经历</a>
+        <a href="#projects" onclick="toggleMobileMenu()" class="text-xl font-light uppercase tracking-widest font-display text-white">项目展示</a>
+        <a href="#contact" onclick="toggleMobileMenu()" class="text-xl font-light uppercase tracking-widest font-display text-white">联系方式</a>
+    </div>
+
+    <section class="min-h-screen flex flex-col justify-center items-center px-6 relative z-10 text-center pt-20">
+        <div class="max-w-4xl mx-auto">
+            <p class="text-xs md:text-sm uppercase tracking-[0.3em] text-mist-gray mb-6 animate-fade-in opacity-0" style="animation-delay: 0.2s;">
+                教育工作者 • 翻译 • 跨文化策略师
+            </p>
+            
+            <h1 class="text-4xl md:text-7xl font-medium leading-tight mb-8 animate-slide-up opacity-0 font-display" style="animation-delay: 0.4s;">
+                陈奕铿<br><span class="text-2xl md:text-4xl font-serif italic text-gray-400 mt-2 block">Yikeng Chen</span>
+            </h1>
+            
+            <p class="max-w-2xl mx-auto text-mist-gray font-light text-base md:text-lg leading-relaxed animate-slide-up opacity-0 mb-10" style="animation-delay: 0.6s;">
+                专注于 <span class="text-white font-normal">考试培训 (DSE/IELTS)</span>，<span class="text-white font-normal">语言本地化</span> 与 <span class="text-white font-normal">内容策略</span>。 
+                <br>以精准与共情，架起语言体系与人类经验的桥梁。
+            </p>
+
+            <div class="flex flex-col md:flex-row gap-6 justify-center animate-slide-up opacity-0" style="animation-delay: 0.8s;">
+                <a href="#contact" class="px-8 py-3 border border-white text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-300">
+                    取得联系
+                </a>
+                <a href="#projects" class="px-8 py-3 border border-white/20 text-xs uppercase tracking-widest hover:border-white transition-all duration-300 text-mist-gray hover:text-white">
+                    查看作品
+                </a>
+            </div>
+            
+            <div class="mt-16 opacity-0 animate-fade-in" style="animation-delay: 1.2s;">
+                 <p class="text-[10px] uppercase tracking-widest text-subtle-gray">Philosophy</p>
+                 <p class="text-sm font-serif italic text-gray-400 mt-2">“语言不仅是交流的工具，更是理解自我与世界的透镜。”</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="py-24 px-6 relative z-10 border-t border-white/5">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
+            <div class="space-y-6">
+                <h2 class="text-2xl font-display text-white mb-6">个人简介</h2>
+                <p class="text-mist-gray font-light leading-relaxed">
+                    凭借在语言教学与跨文化交流领域的丰富经验，我擅长设计个性化的教学策略。我致力于优化知识结构，并利用前沿 AI 工具创新教学与工作方法。
+                </p>
+                <p class="text-mist-gray font-light leading-relaxed">
+                    社会人类学的学术背景使我能够超越语言本身去理解学生与受众，精准捕捉沟通背后的情感与文化语境。
+                </p>
+                
+                <div class="pt-6">
+                    <h3 class="text-sm uppercase tracking-widest text-white mb-6">教育背景</h3>
+                    <div class="space-y-8">
+                        <div class="group border-l border-white/10 pl-6 hover:border-white transition-colors duration-300">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <span class="text-white font-serif text-lg">爱丁堡大学 (University of Edinburgh)</span>
+                                <span class="text-xs text-gray-500 font-mono">2018-2019</span>
+                            </div>
+                            <p class="text-sm text-mist-gray">社会人类学硕士 (MSc)</p>
+                        </div>
+                        <div class="group border-l border-white/10 pl-6 hover:border-white transition-colors duration-300">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <span class="text-white font-serif text-lg">哥伦比亚大学 (Columbia University)</span>
+                                <span class="text-xs text-gray-500 font-mono">2016.09 - 2017.01</span>
+                            </div>
+                            <p class="text-sm text-mist-gray">访问学者 / 交换生</p>
+                        </div>
+                        <div class="group border-l border-white/10 pl-6 hover:border-white transition-colors duration-300">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <span class="text-white font-serif text-lg">广东外语外贸大学</span>
+                                <span class="text-xs text-gray-500 font-mono">2014-2018</span>
+                            </div>
+                            <p class="text-sm text-mist-gray">英语语言文学学士 (文化与传播方向)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="skills" class="bg-white/5 p-8 border border-white/10 backdrop-blur-sm relative overflow-hidden group/container hover:border-white/20 transition-colors duration-500">
+                
+                <h3 class="text-sm uppercase tracking-widest text-white mb-10 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                    专业技能
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-2">
+                    
+                    <div class="space-y-4">
+                        <span class="text-xs text-gray-500 uppercase tracking-widest mb-2 block">语言能力</span>
+                        
+                        <div class="skill-item-container" style="--skill-width: 98%">
+                            <div class="flex justify-between items-center relative z-20">
+                                <span class="text-sm text-gray-200">英语 (雅思 8.0)</span>
+                                <span class="text-xs font-mono skill-level-text">母语级流利</span>
+                            </div>
+                            <div class="skill-spectrum-bar"></div>
+                        </div>
+
+                        <div class="skill-item-container" style="--skill-width: 100%">
+                            <div class="flex justify-between items-center relative z-20">
+                                <span class="text-sm text-gray-200">普通话 & 潮汕话</span>
+                                <span class="text-xs font-mono skill-level-text">母语</span>
+                            </div>
+                            <div class="skill-spectrum-bar"></div>
+                        </div>
+
+                        <div class="skill-item-container" style="--skill-width: 45%">
+                            <div class="flex justify-between items-center relative z-20">
+                                <span class="text-sm text-gray-200">西班牙语</span>
+                                <span class="text-xs font-mono skill-level-text">日常会话</span>
+                            </div>
+                            <div class="skill-spectrum-bar"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 mt-8 md:mt-0">
+                        <span class="text-xs text-gray-500 uppercase tracking-widest mb-2 block">工具与技术</span>
+                        
+                        <div class="skill-item-container" style="--skill-width: 90%">
+                            <div class="flex justify-between items-center relative z-20">
+                                <span class="text-sm text-gray-200">语言本地化 (Localization)</span>
+                                <span class="text-xs font-mono skill-level-text">专家级</span>
+                            </div>
+                            <div class="skill-spectrum-bar"></div>
+                        </div>
+
+                        <div class="skill-item-container" style="--skill-width: 30%">
+                            <div class="flex justify-between items-center relative z-20">
+                                <span class="text-sm text-gray-200">视频制作</span>
+                                <span class="text-xs font-mono skill-level-text">基础</span>
+                            </div>
+                            <div class="skill-spectrum-bar"></div>
+                        </div>
+
+                        <div class="skill-item-container" style="--skill-width: 75%">
+                            <div class="flex justify-between items-center relative z-20">
+                                <span class="text-sm text-gray-200">生成式 AI 应用</span>
+                                <span class="text-xs font-mono skill-level-text">熟练</span>
+                            </div>
+                            <div class="skill-spectrum-bar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-10 pt-6 border-t border-white/5">
+                     <span class="text-xs text-gray-500 uppercase tracking-widest mb-4 block">教学领域</span>
+                     <div class="flex flex-wrap gap-3 text-xs">
+                        <span class="px-3 py-1.5 border border-white/10 text-gray-300 hover:bg-white hover:text-black transition-all cursor-default">雅思阅读 (IELTS)</span>
+                        <span class="px-3 py-1.5 border border-white/10 text-gray-300 hover:bg-white hover:text-black transition-all cursor-default">PTE 学术英语</span>
+                        <span class="px-3 py-1.5 border border-white/10 text-gray-300 hover:bg-white hover:text-black transition-all cursor-default">HKDSE 课程体系</span>
+                        <span class="px-3 py-1.5 border border-white/10 text-gray-300 hover:bg-white hover:text-black transition-all cursor-default">MAP 测试</span>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="experience" class="py-24 px-6 relative z-10">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-display text-white mb-12 text-center">工作经历</h2>
+
+            <div class="space-y-8 border-l border-white/10 ml-3 pl-8 md:pl-12 relative">
+                
+                <div class="relative experience-card">
+                    <span class="timeline-dot absolute -left-[3.25rem] md:-left-[3.4rem] top-1.5 h-3 w-3 rounded-full"></span>
+                    <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
+                        <h3 class="text-xl font-serif text-white">英语阅读讲师</h3>
+                        <span class="text-xs font-mono text-gray-500">2023.03 — 至今</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4 uppercase tracking-widest">深圳唯学一国际教育</p>
+                    <ul class="list-disc list-outside ml-4 text-sm text-mist-gray space-y-3 marker:text-gray-600 leading-relaxed">
+                        <li>负责国际课程体系的专项教学，涵盖 <span class="hr-highlight">PTE</span>, <span class="hr-highlight">IELTS</span>, 及 <span class="hr-highlight">DSE</span>。</li>
+                        <li>利用 <span class="hr-highlight">生成式 AI 工具</span> (ChatGPT, Deepseek) 创新教学方法，显著提升学生的文本分析效率。</li>
+                        <li>参与 DSE 项目的 <span class="hr-highlight">课程设计</span> 与教材修订工作。</li>
+                        <li><strong>成果：</strong> 指导多名学生进入顶尖院校；帮助学生雅思阅读平均分提升 <span class="hr-highlight">1.5 分</span>。</li>
+                    </ul>
+                </div>
+
+                <div class="relative experience-card">
+                    <span class="timeline-dot absolute -left-[3.25rem] md:-left-[3.4rem] top-1.5 h-3 w-3 rounded-full"></span>
+                    <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
+                        <h3 class="text-xl font-serif text-white">独立留学顾问</h3>
+                        <span class="text-xs font-mono text-gray-500">2022.08 — 2023.02</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4 uppercase tracking-widest">教育咨询</p>
+                    <ul class="list-disc list-outside ml-4 text-sm text-mist-gray space-y-3 marker:text-gray-600 leading-relaxed">
+                        <li>为大学申请提供战略性的 <span class="hr-highlight">学术咨询</span> 与规划。</li>
+                        <li>指导学生挖掘真实的个人故事与文书写作，经手案例保持 <span class="hr-highlight">90% 录取成功率</span>。</li>
+                    </ul>
+                </div>
+
+                <div class="relative experience-card">
+                    <span class="timeline-dot absolute -left-[3.25rem] md:-left-[3.4rem] top-1.5 h-3 w-3 rounded-full"></span>
+                    <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
+                        <h3 class="text-xl font-serif text-white">海外运营助理</h3>
+                        <span class="text-xs font-mono text-gray-500">2022.05 — 2022.08</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4 uppercase tracking-widest">Xmind Ltd. (思维导图)</p>
+                    <ul class="list-disc list-outside ml-4 text-sm text-mist-gray space-y-3 marker:text-gray-600 leading-relaxed">
+                        <li>进行 <span class="hr-highlight">用户数据分析</span>，识别全球市场的教育趋势。</li>
+                        <li>管理 <span class="hr-highlight">CRM 活动</span> 并负责英文网页内容的本地化，优化用户参与度。</li>
+                    </ul>
+                </div>
+                
+                <div class="relative experience-card">
+                    <span class="timeline-dot absolute -left-[3.25rem] md:-left-[3.4rem] top-1.5 h-3 w-3 rounded-full"></span>
+                    <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
+                        <h3 class="text-xl font-serif text-white">内容编辑 (本地化)</h3>
+                        <span class="text-xs font-mono text-gray-500">2020.04 — 2022.02</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4 uppercase tracking-widest">坤信翻译</p>
+                    <ul class="list-disc list-outside ml-4 text-sm text-mist-gray space-y-3 marker:text-gray-600 leading-relaxed">
+                        <li>执行法律与企业领域的全流程 <span class="hr-highlight">本地化项目</span>。</li>
+                        <li>熟练使用 <span class="hr-highlight">Adobe AEM</span>, <span class="hr-highlight">Salesforce</span>, 及 <span class="hr-highlight">CAT 工具 (Trados/LILT)</span> 确保工作流的高效运转。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects" class="py-24 px-6 relative z-10 border-t border-white/5">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-display text-white mb-16 text-center">精选作品</h2>
+            
+            <div class="space-y-24">
+                
+                 <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center group">
+                    <div class="md:col-span-7 relative aspect-video bg-black rounded-sm overflow-hidden border border-white/10">
+                         <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1200&auto=format&fit=crop" alt="Visual Narrative" class="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity duration-700">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-16 h-16 rounded-full bg-white/5 backdrop-blur-sm border border-white/20 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" class="w-6 h-6 text-white ml-1"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="md:col-span-5 md:pl-8">
+                        <span class="text-[10px] text-gray-500 uppercase tracking-[0.2em] mb-2 block">视觉叙事</span>
+                        <h3 class="text-2xl font-serif text-white mb-4 group-hover:text-gray-300 transition-colors">数字故事与人文连接</h3>
+                        <p class="text-sm text-mist-gray leading-relaxed mb-6">
+                            探讨语言、文化与数字身份交织的视频论文。结合动态图形（Motion Graphics）与叙事性故事讲述。
+                        </p>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 border border-white/10 text-[10px] text-gray-500">导演</span>
+                            <span class="px-3 py-1 border border-white/10 text-[10px] text-gray-500">剪辑</span>
+                            <span class="px-3 py-1 border border-white/10 text-[10px] text-gray-500">叙事</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center group">
+                    <div class="md:col-span-7 md:order-2 relative aspect-[2/1] bg-black rounded-sm overflow-hidden border border-white/10">
+                        <img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=1200&auto=format&fit=crop" alt="DK Food" class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-700">
+                    </div>
+                    
+                    <div class="md:col-span-5 md:order-1 md:pr-8 text-right md:text-left">
+                        <span class="text-[10px] text-gray-500 uppercase tracking-[0.2em] mb-2 block">出版翻译</span>
+                        <h3 class="text-2xl font-serif text-white mb-4 group-hover:text-gray-300 transition-colors">DK百科:《食物的故事》</h3>
+                        <p class="text-sm text-mist-gray leading-relaxed mb-6">
+                            主导该百科全书的英中翻译项目。统一了团队术语库，在语言精准度与大众可读性之间取得平衡。
+                        </p>
+                        <p class="text-xs text-white mb-4">成果：于 2021 年 11 月成功出版。</p>
+                        <div class="flex gap-2 justify-end md:justify-start">
+                            <span class="px-3 py-1 border border-white/10 text-[10px] text-gray-500">翻译</span>
+                            <span class="px-3 py-1 border border-white/10 text-[10px] text-gray-500">本地化</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center group">
+                    <div class="md:col-span-7 relative aspect-[2/1] bg-black rounded-sm overflow-hidden border border-white/10">
+                        <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1200&auto=format&fit=crop" alt="Curriculum Design" class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-700">
+                    </div>
+                    
+                    <div class="md:col-span-5 md:pl-8">
+                        <span class="text-[10px] text-gray-500 uppercase tracking-[0.2em] mb-2 block">课程设计</span>
+                        <h3 class="text-2xl font-serif text-white mb-4 group-hover:text-gray-300 transition-colors">DSE 与 AI 融合</h3>
+                        <p class="text-sm text-mist-gray leading-relaxed mb-6">
+                            参与 HKDSE 英语阅读教材的编辑与修订。优化了逻辑题解题策略，并集成了 AI 辅助学习模块。
+                        </p>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 border border-white/10 text-[10px] text-gray-500">教学法</span>
+                            <span class="px-3 py-1 border border-white/10 text-[10px] text-gray-500">AI 工具</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-20">
+                <button class="group relative px-8 py-3 text-xs uppercase tracking-widest text-white border border-white/20 hover:border-white transition-all duration-300 overflow-hidden">
+                    <span class="relative z-10 flex items-center gap-2">
+                        加载更多项目
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 group-hover:translate-y-1 transition-transform"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+                    </span>
+                    <div class="absolute inset-0 bg-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 -z-0 group-hover:bg-white/10"></div>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="py-32 px-6 relative z-10 border-t border-white/5">
+        <div class="max-w-3xl mx-auto text-center">
+            <h2 class="text-3xl md:text-4xl font-display text-white mb-8">联系方式</h2>
+            <p class="text-mist-gray font-light mb-12">
+                寻求教育、本地化及内容策略领域的工作机会。
+            </p>
+
+            <div class="border border-white/10 p-8 backdrop-blur-sm max-w-2xl mx-auto mb-16 bg-white/5">
+                <div class="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-12">
+                    
+                    <div class="flex flex-col items-center group">
+                        <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-3 group-hover:bg-white/10 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white opacity-80"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        </div>
+                        <span class="text-xs uppercase tracking-widest text-gray-500 mb-1">手机 / 微信</span>
+                        <p class="text-sm text-white font-medium hover:text-gray-300 transition-colors">+86 135 1035 7398</p>
+                    </div>
+
+                    <div class="hidden md:block w-px h-12 bg-white/10"></div>
+
+                    <a href="mailto:yikengchen.wk@gmail.com" class="flex flex-col items-center group">
+                        <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-3 group-hover:bg-white/10 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white opacity-80 group-hover:text-white transition-colors"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        </div>
+                        <span class="text-xs uppercase tracking-widest text-gray-500 mb-1">邮箱</span>
+                        <p class="text-sm text-white font-medium group-hover:text-gray-300 transition-colors">yikengchen.wk@gmail.com</p>
+                    </a>
+
+                    <div class="hidden md:block w-px h-12 bg-white/10"></div>
+
+                    <div class="flex flex-col items-center group">
+                        <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-3 group-hover:bg-white/10 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white opacity-80"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <span class="text-xs uppercase tracking-widest text-gray-500 mb-1">常驻地</span>
+                        <p class="text-sm text-white font-medium">中国深圳</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="opacity-100">
+                 <p class="text-xs text-gray-500 uppercase tracking-widest mb-6">社交媒体</p>
+                 <div class="flex justify-center gap-6">
+                     <a href="javascript:void(0)" class="social-icon-link group" onclick="alert('微信号: 13510357398')">
+                         <span class="social-label">微信</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                     </a>
+                     
+                     <a href="https://www.xiaohongshu.com/" target="_blank" class="social-icon-link group">
+                        <span class="social-label">小红书</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                     </a>
+                     
+                     <a href="https://www.bilibili.com/" target="_blank" class="social-icon-link group">
+                        <span class="social-label">Bilibili</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+                     </a>
+                 </div>
+            </div>
+            
+        </div>
+    </section>
+
+    <footer class="py-8 px-6 bg-black border-t border-white/5 text-center">
+        <p class="text-[10px] uppercase tracking-[0.2em] text-gray-600">
+            © 2025 Yikeng Chen. All Rights Reserved.
+        </p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // --- WebGL Intense Flow Background (Inspiration: Aurora/Cosmic) ---
+        
+        // 1. CONFIGURATION: Tweak these to change the vibe instantly
+        const config = {
+            // Preset A: "Aurora" (High visibility, Intellectual, Deep)
+            colorHigh: new THREE.Color("#00FFFF"), // Electric Cyan
+            colorLow: new THREE.Color("#4B0082"),  // Indigo/Deep Purple
+            
+            // Try swapping with Preset C ("Sunset") if you prefer warm colors:
+            // colorHigh: new THREE.Color("#ff00cc"), // Magenta
+            // colorLow: new THREE.Color("#ff9900"),  // Orange
+
+            flowSpeed: 0.15,        // [MODIFIED] Slowed down significantly for "idle" state
+            scrollInfluence: 8.0,   // [MODIFIED] Increased significantly to make scroll the main driver
+            intensity: 1.8,         // [MODIFIED] Slightly higher intensity for better visibility at slow speeds
+            opacity: 0.7,           // Visibility (0.0 to 1.0)
+            meshSegments: window.innerWidth < 768 ? 64 : 128
+        };
+
+        let scene, camera, renderer, silkMesh;
+        let uniforms;
+        const container = document.getElementById('webgl-container');
+        
+        let scrollTarget = 0;
+        let scrollCurrent = 0;
+
+        function initWebGL() {
+            // Scene Setup
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 1; 
+
+            // Renderer Setup
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            // Geometry
+            const geometry = new THREE.PlaneGeometry(3, 3, config.meshSegments, config.meshSegments);
+
+            // Shaders
+            uniforms = {
+                uTime: { value: 0.0 },
+                uScrollOffset: { value: 0.0 },
+                uColorHigh: { value: config.colorHigh },
+                uColorLow: { value: config.colorLow },
+                uIntensity: { value: config.intensity },
+                uOpacity: { value: config.opacity },
+                uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+            };
+
+            const vertexShader = `
+                uniform float uTime;
+                uniform float uScrollOffset;
+                uniform float uIntensity;
+                varying vec2 vUv;
+                varying float vElevation;
+
+                void main() {
+                    vUv = uv;
+                    vec3 newPosition = position;
+                    float timeScale = uTime + uScrollOffset;
+                    
+                    // More complex wave pattern for "Intense" look
+                    float elevation = sin(newPosition.x * 4.0 + timeScale) * 0.2 * uIntensity;
+                    elevation += sin(newPosition.y * 3.0 + timeScale * 0.5) * 0.2 * uIntensity;
+                    elevation += sin((newPosition.x + newPosition.y) * 6.0 + timeScale * 0.8) * 0.05;
+                    
+                    // Add some "noise" movement
+                    elevation += cos(newPosition.x * 10.0 + timeScale * 2.0) * 0.02;
+
+                    newPosition.z += elevation;
+                    vElevation = elevation;
+
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+                }
+            `;
+
+            const fragmentShader = `
+                uniform vec3 uColorHigh;
+                uniform vec3 uColorLow;
+                uniform float uOpacity;
+                varying vec2 vUv;
+                varying float vElevation;
+
+                void main() {
+                    // Dramatic mixing based on elevation
+                    float mixStrength = (vElevation + 0.5) * 1.5;
+                    mixStrength = smoothstep(0.0, 1.0, mixStrength);
+                    
+                    vec3 finalColor = mix(uColorLow, uColorHigh, mixStrength);
+                    
+                    // Add a subtle "glow" bloom effect artificially
+                    float glow = smoothstep(0.4, 0.6, mixStrength) * 0.2;
+                    finalColor += vec3(glow);
+
+                    // Vignette to keep focus center
+                    float dist = distance(vUv, vec2(0.5));
+                    float alpha = uOpacity * (1.0 - dist * 0.5);
+
+                    gl_FragColor = vec4(finalColor, alpha); 
+                }
+            `;
+
+            const material = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                wireframe: false,
+                transparent: true,
+                depthWrite: false, // Helps with transparency blending
+                blending: THREE.AdditiveBlending // Makes colors pop against black
+            });
+
+            silkMesh = new THREE.Mesh(geometry, material);
+            silkMesh.rotation.x = -0.3; // Tilted slightly more for depth
+            scene.add(silkMesh);
+
+            // Listeners
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('scroll', onScroll);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+        }
+
+        function onScroll() {
+             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+             const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+             const scrollPercent = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
+             scrollTarget = scrollPercent * config.scrollInfluence;
+        }
+
+        function animateWebGL() {
+            requestAnimationFrame(animateWebGL);
+            uniforms.uTime.value += config.flowSpeed * 0.01;
+            scrollCurrent += (scrollTarget - scrollCurrent) * 0.05;
+            uniforms.uScrollOffset.value = scrollCurrent;
+            renderer.render(scene, camera);
+        }
+
+        // Initialize WebGL
+        if (document.getElementById('webgl-container')) {
+            initWebGL();
+            animateWebGL();
+        }
+
+        // --- Other Scripts ---
+        // Initialize Icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Mobile Menu Logic
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const isOpen = !menu.classList.contains('hidden');
+            if (isOpen) {
+                menu.classList.remove('opacity-100');
+                menu.classList.add('opacity-0');
+                setTimeout(() => {
+                    menu.classList.add('hidden');
+                    menu.classList.remove('flex');
+                }, 300);
+            } else {
+                menu.classList.remove('hidden');
+                menu.classList.add('flex');
+                void menu.offsetWidth;
+                menu.classList.remove('opacity-0');
+                menu.classList.add('opacity-100');
+            }
+        }
+    </script>
+</body>
+</html>
