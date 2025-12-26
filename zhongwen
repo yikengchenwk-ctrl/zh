@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no, email=no">
+    <meta name="description" content="陈奕铿 (Yikeng Chen) - 教育工作者 & 本地化专家个人作品集">
+    <title>陈奕铿 Yikeng Chen | 教育工作者 & 本地化专家</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@200;300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        // 优先使用中文黑体
+                        sans: ['Inter', 'Noto Sans SC', 'system-ui', '-apple-system', 'sans-serif'],
+                        // 优先使用中文宋体，营造典雅感
+                        serif: ['Noto Serif SC', 'Georgia', 'serif'],
+                        // 标题字体保留 Cinzel 的英文字形，中文回退到宋体
+                        display: ['Cinzel', 'Noto Serif SC', 'serif'],
+                    },
+                    colors: {
+                        'void-black': '#050505',
+                        'starlight': '#f4f4f5',
+                        'mist-gray': '#a1a1aa',
+                        'subtle-gray': '#525252',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 1s ease-out forwards',
+                        'slide-up': 'slideUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        
+        body { 
+            background-color: #050505; /* Black fallback */
+            color: #f4f4f5; 
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Canvas Container for Three.js Background */
+        #webgl-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -10;
+            background: linear-gradient(135deg, #050505, #1a0b2e, #0f172a); 
+        }
+
+        /* Overlay to ensure text readability against the dynamic background */
+        .readability-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(5,5,5,0.4) 0%, rgba(5,5,5,0.85) 100%);
+            z-index: -5;
+            pointer-events: none;
+        }
+
+        .glass-nav {
+            background: rgba(5, 5, 5, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Styles preserved from previous iterations */
+        .hr-highlight {
+            position: relative;
+            cursor: pointer;
+            color: #e5e5e5;
+            border-bottom: 1px dashed rgba(255,255,255,0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-block;
+        }
+        
+        .hr-highlight:hover {
+            color: #000;
+            background: #fff;
+            border-bottom: 1px solid #fff;
+            transform: scale(1.05);
+            padding: 0 6px;
+            margin: 0 -2px;
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.8);
+            font-weight: 600;
+        }
+
+        /* Skill Spectrum Animation */
+        .skill-item-container {
+            position: relative;
+            padding: 12px 0;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            transition: all 0.3s ease;
+        }
+
+        .skill-item-container:hover {
+            border-bottom: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.02);
+            padding-left: 10px; 
+        }
+
+        .skill-level-text {
+            opacity: 0; 
+            transform: translateX(-10px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.7rem;
+            color: #fff;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 80px; 
+            text-align: right;
+        }
+
+        .skill-item-container:hover .skill-level-text {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .skill-spectrum-bar {
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            height: 2px;
+            width: 0%; 
+            background: linear-gradient(90deg, #fff, #a1a1aa, transparent);
+            box-shadow: 0 0 10px rgba(255,255,255,0.8);
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 10;
+        }
+
+        .skill-item-container:hover .skill-spectrum-bar {
+            width: var(--skill-width, 100%); 
+        }
+
+        /* Experience Card */
+        .experience-card {
+            transition: all 0.4s ease;
+            border-left: 2px solid transparent;
+            padding-left: 1rem;
+            margin-left: -1rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .experience-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 2px solid #fff;
+            transform: translateX(5px);
+        }
+
+        .timeline-dot {
+            transition: all 0.4s ease;
+            background-color: #333; 
+            box-shadow: none;
+            border: 2px solid #555;
+        }
+
+        .experience-card:hover .timeline-dot {
+            background-color: #fff;
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+            transform: scale(1.2);
+        }
+
+        /* Social Icon */
+        .social-icon-link {
+            transition: all 0.3s ease;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: #a1a1aa;
+            margin: 0 8px;
+        }
+
+        .social-icon-link:hover {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(255,255,255,0.6);
+        }
+        
+        .social-label {
+            position: absolute;
+            bottom: -24px;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #a1a1aa;
+        }
+
+        .social-icon-link:hover .social-label {
+            opacity: 1;
+        }
+        
+        /* Clean Brand Logo Style */
+        .brand-logo {
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            position: relative;
+            padding-bottom: 2px;
+            color: #fff;
+        }
+        
+        .brand-logo::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 30%;
+            height: 1px;
+            background-color: #fff;
+            transition: width 0.3s ease;
+        }
+        
+        .brand-logo:hover::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-white selection:text-black">
+
+    <div id="webgl-container"></div>
+    <div class="readability-overlay"></div>
+
+    <nav class="fixed w-full z-40 transition-all duration-300 px-6 py-6" id="navbar">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="#" class="brand-logo text-xl hover:text-gray-300 transition-colors">
+                RESUME
+            </a>
+            
+            <div class="hidden md:flex space-x-12">
+                <a href="#about" class="text-xs uppercase tracking-[0.15em] text-gray-400 hover:text-white transition-colors">关于我</a>
+                <a href="#skills" class="text-xs uppercase tracking-[0.15em] text-gray-400 hover:text-white transition-colors">专业技能</a>
+                <a href="#experience" class="text-xs uppercase tracking-[0.15em] text-gray-400 hover:text-white transition-colors">工作经历</a>
+                <a href="#projects" class="text-xs uppercase tracking-[0.15em] text-gray-400 hover:text-white transition-colors">项目展示</a>
+                <a href="#contact" class="text-xs uppercase tracking-[0.15em] text-gray-400 hover:text-white transition-colors">联系方式</a>
+            </div>
+
+            <button class="md:hidden text-white" onclick="toggleMobileMenu()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <div id="mobile-menu" class="fixed inset-0 bg-void-black/95 z-50 hidden flex-col justify-center items-center space-y-8 opacity-0 transition-opacity duration-300 backdrop-blur-md">
+        <button class="absolute top-6 right-6 p-2 text-white"
